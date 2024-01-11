@@ -1,0 +1,782 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Bio Cleaner Api",
+    "version": "1.0.0",
+    "description": "Bio Cleaner Api Documentation"
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Auth": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["phone", "password"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+
+          "image": {
+            "type": "string"
+          }
+        },
+        "required": ["email", "role"]
+      },
+      "Machine": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "location", "serialNumber"]
+      },
+      "Input": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "water": {
+            "type": "number"
+          },
+          "waste": {
+            "type": "number"
+          },
+          "methanol": {
+            "type": "number"
+          }
+        },
+        "required": ["type", "water", "waste", "methanol"]
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Auth"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "post": {
+        "summary": "Create user",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "firstName": "John",
+                    "lastName": "Doe",
+
+                    "phone": "0912345678",
+                    "image": "https://res.cloudinary.com/123.jpg",
+
+                    "role": "USER",
+
+                    "_id": "6570903a497e5790f47d13c9",
+                    "createAt": "2023-12-06T15:16:10.583Z",
+                    "__v": 0
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "summary": "Get current user",
+        "tags": ["Users"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "phone": "0912345678"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "summary": "Get user by id",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "duresafeyisa2025@gmail.com",
+                  "phone": "0912345678",
+                  "image": "https://res.cloudinary.com/123.jpg",
+                  "role": "USER",
+                  "verify": false,
+                  "points": 0,
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user by id",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "duresafeyisa2025@gmail.com",
+                  "phone": "0912345678",
+                  "image": "https://res.cloudinary.com/123.jpg",
+                  "role": "USER",
+                  "verify": false,
+                  "points": 0,
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user by id",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "duresafeyisa2025@gmail.com",
+                  "phone": "0912345678",
+                  "image": "https://res.cloudinary.com/123.jpg",
+                  "cover": "https://res.cloudinary.com/123.jpg",
+                  "role": "USER",
+                  "verify": false,
+                  "points": 0,
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/machines/{userId}": {
+      "post": {
+        "summary": "Create machine",
+        "tags": ["Machines"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Machine"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "name": "Machine 1",
+                    "location": "Addis Ababa",
+                    "serialNumber": "1234567890",
+                    "_id": "6570903a497e5790f47d13c9",
+                    "createAt": "2023-12-06T15:16:10.583Z",
+                    "__v": 0
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/machines/{id}": {
+      "get": {
+        "summary": "Get machine by id",
+        "tags": ["Machines"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Machine id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "name": "Machine 1",
+                  "location": "Addis Ababa",
+                  "serialNumber": "1234567890",
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete machine by id",
+        "tags": ["Machines"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Machine id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "name": "Machine 1",
+                  "location": "Addis Ababa",
+                  "serialNumber": "1234567890",
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update machine by id",
+        "tags": ["Machines"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Machine id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Machine"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "name": "Machine 1",
+                  "location": "Addis Ababa",
+                  "serialNumber": "1234567890",
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/machines/{userId}/views": {
+      "get": {
+        "summary": "Get all machines",
+        "tags": ["Machines"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "name": "Machine 1",
+                    "location": "Addis Ababa",
+                    "serialNumber": "1234567890",
+                    "_id": "6570903a497e5790f47d13c9",
+                    "createAt": "2023-12-06T15:16:10.583Z",
+                    "__v": 0
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/inputs/{machineId}": {
+      "post": {
+        "summary": "Create input",
+        "tags": ["Inputs"],
+        "parameters": [
+          {
+            "name": "machineId",
+            "in": "path",
+            "description": "Machine id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "type": "WASH",
+                    "water": 10,
+                    "waste": 10,
+                    "methanol": 10,
+                    "_id": "6570903a497e5790f47d13c9",
+                    "createAt": "2023-12-06T15:16:10.583Z",
+                    "__v": 0
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/inputs/{id}": {
+      "get": {
+        "summary": "Get input by id",
+        "tags": ["Inputs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Input id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "type": "WASH",
+                  "water": 10,
+                  "waste": 10,
+                  "methanol": 10,
+                  "_id": "6570903a497e5790f47d13c9",
+                  "createAt": "2023-12-06T15:16:10.583Z",
+                  "__v": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete input by id",
+        "tags": ["Inputs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Input id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update input by id",
+        "tags": ["Inputs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Input id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/inputs/{machineId}/views": {
+      "get": {
+        "summary": "Get all inputs",
+        "tags": ["Inputs"],
+        "parameters": [
+          {
+            "name": "machineId",
+            "in": "path",
+            "description": "Machine id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    }
+  }
+}
