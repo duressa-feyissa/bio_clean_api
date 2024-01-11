@@ -1,8 +1,8 @@
 import { Types } from 'mongoose'
 import CustomError from '../../config/error'
+import Machine, { IMachine } from '../../domain/entities/machine'
 import MachineModel from '../database/models/machine'
 import UserModel from '../database/models/user'
-import Machine, { IMachine } from '../../domain/entities/machine'
 
 export type IMachineRepositoryImpl = () => {
   findById: (id: string) => Promise<IMachine>
@@ -75,36 +75,17 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    const deletedMachine = MachineModel.findByIdAndDelete(id)
-      .select('-inputs')
-      .then((machine: any) => {
-        if (!machine) {
-          return Promise.reject(
-            new CustomError(`Machine with id ${id} not found`, 404),
-          )
-        }
-        return machine as IMachine
-      })
+    const machine = MachineModel.findByIdAndDelete(id).then((machine: any) => {
+      if (!machine) {
+        return Promise.reject(
+          new CustomError(`Machine with id ${id} not found`, 404),
+        )
+      }
+      return machine as IMachine
+    })
 
-    await UserModel.aggregate([
-      { $match: { machines: new Types.ObjectId(id) } },
-      {
-        $project: {
-          machines: {
-            $filter: {
-              input: '$machines',
-              as: 'machine',
-              cond: { $ne: ['$$machine', new Types.ObjectId(id)] },
-            },
-          },
-        },
-      },
-      { $out: 'users' },
-    ])
-
-    return deletedMachine
+    return machine
   }
-
   const createMachine = async (
     userId: string,
     machine: ReturnType<typeof Machine>,
