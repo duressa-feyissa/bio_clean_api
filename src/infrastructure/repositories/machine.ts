@@ -142,12 +142,16 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    return MachineModel.findByIdAndUpdate(id, {
-      name: machine.getName(),
-      serialNumber: machine.getSerialNumber(),
-      location: machine.getLocation(),
-      updatedAt: machine.getUpdatedAt(),
-    })
+    return MachineModel.findByIdAndUpdate(
+      id,
+      {
+        name: machine.getName(),
+        serialNumber: machine.getSerialNumber(),
+        location: machine.getLocation(),
+        updatedAt: machine.getUpdatedAt(),
+      },
+      { new: true },
+    )
       .select('-inputs')
       .then((updatedMachine: IMachine | null) => {
         if (updatedMachine) {
