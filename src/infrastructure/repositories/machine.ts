@@ -84,6 +84,11 @@ export default function machineRepositoryMongoDB() {
       return machine as IMachine
     })
 
+    await UserModel.updateOne(
+      { machines: new Types.ObjectId(id) },
+      { $pull: { machines: new Types.ObjectId(id) } },
+    )
+
     return machine
   }
   const createMachine = async (
