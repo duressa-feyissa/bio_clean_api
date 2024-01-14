@@ -58,8 +58,10 @@ export default function inputController(
     next: NextFunction,
   ) => {
     const serialNumber = req.params.serialNumber
-    const water = parseFloat(req.body.water)
-    const biogas = parseFloat(req.body.biogas)
+    const water =
+      typeof req.query.water === 'string' ? parseFloat(req.query.water) : 0
+    const biogas =
+      typeof req.query.biogas === 'string' ? parseFloat(req.query.biogas) : 0
     progressInput(serialNumber, water, biogas, dbRepository)
       .then(user => res.json(user))
       .catch(error => next(error))

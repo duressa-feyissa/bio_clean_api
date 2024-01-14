@@ -7,7 +7,7 @@ import authMiddleware from '../middlewares/authMiddleware'
 export default function inputRouter(router: Router) {
   const controller = inputController(inputDBRepository, inputRepositoryMongoDB)
 
-  router.put('/:serialNumber/progress', controller.updateProduction)
+  router.post('/:serialNumber/progress', controller.updateProduction)
   router.post('/:machineId', authMiddleware, controller.createInputFetch)
   router.get('/:id', authMiddleware, controller.fetchInputById)
   router.delete('/:id', authMiddleware, controller.deleteInput)

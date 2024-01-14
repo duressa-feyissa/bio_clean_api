@@ -791,7 +791,7 @@
       }
     },
     "/api/v1/inputs/{serialNumber}/progress": {
-      "put": {
+      "post": {
         "summary": "Update progress",
         "tags": ["Inputs"],
         "parameters": [
@@ -803,18 +803,25 @@
             "schema": {
               "type": "string"
             }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Progress"
-              }
+          },
+          {
+            "name": "water",
+            "in": "query",
+            "description": "Water parameter",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "biogas",
+            "in": "query",
+            "description": "Biogas parameter",
+            "schema": {
+              "type": "number"
             }
           }
-        },
+        ],
+
         "responses": {
           "200": {
             "description": "Successful response"
