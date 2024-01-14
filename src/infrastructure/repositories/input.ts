@@ -237,6 +237,8 @@ export default function inputRepositoryMongoDB() {
         )
       }
 
+      console.log(input)
+
       return input
     })
 
