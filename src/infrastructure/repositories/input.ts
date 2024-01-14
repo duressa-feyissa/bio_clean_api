@@ -1,8 +1,8 @@
 import { Types } from 'mongoose'
 import CustomError from '../../config/error'
+import Input, { IInput } from '../../domain/entities/input'
 import InputModel from '../database/models/input'
 import MachineModel from '../database/models/machine'
-import Input, { IInput } from '../../domain/entities/input'
 
 export type IInputRepositoryImpl = () => {
   findById: (id: string) => Promise<IInput>

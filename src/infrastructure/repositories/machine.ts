@@ -87,7 +87,14 @@ export default function machineRepositoryMongoDB() {
     await UserModel.updateOne(
       { machines: new Types.ObjectId(id) },
       { $pull: { machines: new Types.ObjectId(id) } },
-    )
+    ).then((user: any) => {
+      if (!user) {
+        return Promise.reject(
+          new CustomError(`User with machine id ${id} not found`, 404),
+        )
+      }
+      return user
+    })
 
     return machine
   }
