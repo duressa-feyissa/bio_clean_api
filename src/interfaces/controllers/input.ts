@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import createInput from '../../application/use_cases/input/create'
 import removeInput from '../../application/use_cases/input/delete'
 import findById from '../../application/use_cases/input/findById'
+import progressInput from '../../application/use_cases/input/progress'
 import updateInput from '../../application/use_cases/input/update'
 import viewInput from '../../application/use_cases/input/views'
 import { IInputRepository } from '../../domain/repositories/input'
@@ -51,11 +52,25 @@ export default function inputController(
       .catch(error => next(error))
   }
 
+  const updateProduction = (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const serialNumber = req.params.serialNumber
+    const water = parseFloat(req.body.water)
+    const biogas = parseFloat(req.body.biogas)
+    progressInput(serialNumber, water, biogas, dbRepository)
+      .then(user => res.json(user))
+      .catch(error => next(error))
+  }
+
   return {
     fetchInputById,
     deleteInput,
     updateInputfetch,
     createInputFetch,
     fetchViewsInput,
+    updateProduction,
   }
 }

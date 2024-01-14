@@ -13,6 +13,11 @@ export type IInputRepositoryImpl = () => {
     input: ReturnType<typeof Input>,
   ) => Promise<IInput>
   viewsInput: (id: string) => Promise<IInput[]>
+  updateProduction: (
+    serialNumber: string,
+    water: number,
+    biogas: number,
+  ) => Promise<IInput>
 }
 
 export default function inputRepositoryMongoDB() {
@@ -188,11 +193,62 @@ export default function inputRepositoryMongoDB() {
     return inputs
   }
 
+  const updateProduction = async (
+    serialNumber: string,
+    water: number,
+    biogas: number,
+  ): Promise<IInput> => {
+    const machine = await MachineModel.findOne({ serialNumber })
+
+    if (!machine) {
+      return Promise.reject(
+        new CustomError(
+          `Machine with serialNumber ${serialNumber} not found`,
+          404,
+        ),
+      )
+    }
+
+    const inputs = await InputModel.find({
+      _id: { $in: machine.inputs },
+    }).sort({ updatedAt: -1 })
+
+    const updatedInput = await InputModel.findByIdAndUpdate(
+      inputs[0]._id,
+      {
+        type: inputs[0].type,
+        waste: inputs[0].waste,
+        water: inputs[0].water,
+        methanol: inputs[0].methanol,
+        createdAt: inputs[0].createdAt,
+        waterProduction: Math.max(water, inputs[0].waterProduction || 0),
+        bioGasProduction: Math.max(biogas, inputs[0].bioGasProduction || 0),
+        currentBioGasProduction: biogas,
+        currentWaterProduction: water,
+        updatedAt: new Date(),
+      },
+      {
+        new: true,
+      },
+    ).then((input: any) => {
+      if (!input) {
+        return Promise.reject(
+          new CustomError(`Input with id ${inputs[0]._id} not found`, 404),
+        )
+      }
+
+      return input
+    })
+
+    return updatedInput
+  }
+
   return {
     findById,
     deleteInput,
     updateInput,
     createInput,
     viewsInput,
+    updateProduction,
   }
 }

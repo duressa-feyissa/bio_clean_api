@@ -89,6 +89,18 @@
           }
         },
         "required": ["type", "water", "waste", "methanol"]
+      },
+      "Progress": {
+        "type": "object",
+        "properties": {
+          "water": {
+            "type": "number"
+          },
+          "biogas": {
+            "type": "number"
+          }
+        },
+        "required": ["waste", "biogas"]
       }
     }
   },
@@ -765,6 +777,44 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/inputs/{serialNumber}/progress": {
+      "put": {
+        "summary": "Update progress",
+        "tags": ["Inputs"],
+        "parameters": [
+          {
+            "name": "serialNumber",
+            "in": "path",
+            "description": "Serial number of bio cleaner",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Progress"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful response"

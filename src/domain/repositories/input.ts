@@ -12,6 +12,7 @@ export type IInputRepository = (
     input: ReturnType<typeof Input>,
   ) => Promise<IInput>
   viewsInput: (id: string) => Promise<IInput[]>
+  updateProduction: (serialNumber:string, water: number, biogas: number) => Promise<IInput>
 }
 
 export default function inputRepository(
@@ -27,11 +28,16 @@ export default function inputRepository(
   const updateInput = (id: string, input: ReturnType<typeof Input>) =>
     repository.updateInput(id, input)
 
+  const updateProduction = (serialNumber:string, water: number, biogas: number) => {
+    return repository.updateProduction(serialNumber,  water, biogas)
+  }
+
   return {
     findById,
     deleteInput,
     updateInput,
     createInput,
     viewsInput,
+    updateProduction,
   }
 }
