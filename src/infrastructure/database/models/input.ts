@@ -24,7 +24,26 @@ const InputSchema: Schema<IInput> = new Schema({
     trim: true,
     lowercase: true,
   },
-
+  waterProduction: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  bioGasProduction: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  currentBioGasProduction: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  currentWaterProduction: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -6,6 +6,10 @@ export interface IInput {
   waste: number
   createdAt?: Date
   updatedAt?: Date
+  waterProduction?: number
+  bioGasProduction?: number
+  currentBioGasProduction?: number
+  currentWaterProduction?: number
 }
 
 export default function Input({
@@ -14,6 +18,10 @@ export default function Input({
   water,
   methanol,
   waste,
+  waterProduction,
+  bioGasProduction,
+  currentBioGasProduction,
+  currentWaterProduction,
   createdAt,
   updatedAt,
 }: IInput) {
@@ -23,6 +31,10 @@ export default function Input({
     getWater: () => water,
     getMethanol: () => methanol,
     getWaste: () => waste,
+    getWaterProduction: () => waterProduction,
+    getBioGasProduction: () => bioGasProduction,
+    getCurrentBioGasProduction: () => currentBioGasProduction,
+    getCurrentWaterProduction: () => currentWaterProduction,
     getCreatedAt: () => createdAt,
     getUpdatedAt: () => updatedAt,
   })
