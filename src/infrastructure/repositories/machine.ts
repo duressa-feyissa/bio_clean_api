@@ -39,7 +39,7 @@ export default function machineRepositoryMongoDB() {
       { $unwind: '$machines' },
       {
         $project: {
-          _id: 1,
+          _id: '$machines._id',
           name: '$machines.name',
           serialNumber: '$machines.serialNumber',
           location: '$machines.location',
@@ -75,14 +75,16 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    const machine = MachineModel.findByIdAndDelete(id).then((machine: any) => {
-      if (!machine) {
-        return Promise.reject(
-          new CustomError(`Machine with id ${id} not found`, 404),
-        )
-      }
-      return machine as IMachine
-    })
+    const machine = MachineModel.findByIdAndDelete(id)
+      .select('-inputs')
+      .then((machine: any) => {
+        if (!machine) {
+          return Promise.reject(
+            new CustomError(`Machine with id ${id} not found`, 404),
+          )
+        }
+        return machine
+      })
 
     await UserModel.updateOne(
       { machines: new Types.ObjectId(id) },
