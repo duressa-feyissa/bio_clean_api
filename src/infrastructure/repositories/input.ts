@@ -181,7 +181,9 @@ export default function inputRepositoryMongoDB() {
       )
     }
 
-    const inputs = await InputModel.find({ _id: { $in: existMachine.inputs } })
+    const inputs = await InputModel.find({
+      _id: { $in: existMachine.inputs },
+    }).sort({ createdAt: -1 })
 
     return inputs
   }
