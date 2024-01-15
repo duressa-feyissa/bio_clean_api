@@ -14,7 +14,7 @@ export type IMachineRepository = (
     userId: string,
     machine: ReturnType<typeof Machine>,
   ) => Promise<IMachine>
-  viewsMachine: (id: string) => Promise<IMachine[]>
+  viewsMachine: (id: string, serialNumbers: string[])  => Promise<IMachine[]>
 }
 
 export default function machineDBRepository(
@@ -26,7 +26,7 @@ export default function machineDBRepository(
 
   const createMachine = (userId: string, machine: ReturnType<typeof Machine>) =>
     repository.createMachine(userId, machine)
-  const viewsMachine = (id: string) => repository.viewsMachine(id)
+  const viewsMachine = (id: string, serialNumbers: string[]) => repository.viewsMachine(id, serialNumbers)
   const updateMachine = (id: string, machine: ReturnType<typeof Machine>) =>
     repository.updateMachine(id, machine)
 

@@ -571,6 +571,18 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "serialNumbers",
+            "in": "query",
+            "description": "Serial numbers of bio cleaner",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {

@@ -57,12 +57,7 @@ export default function inputController(
     res: Response,
     next: NextFunction,
   ) => {
-    console.log(
-      req.params.serialNumber,
-      req.query.water,
-      req.query.biogas,
-      dbRepository,
-    )
+    console.log(req.params.serialNumber, req.query.water, req.query.biogas)
     const serialNumber = req.params.serialNumber
     const water =
       typeof req.query.water === 'string' ? parseFloat(req.query.water) : 0

@@ -14,18 +14,21 @@ export type IMachineRepositoryImpl = () => {
     userId: string,
     machine: ReturnType<typeof Machine>,
   ) => Promise<IMachine>
-  viewsMachine: (id: string) => Promise<IMachine[]>
+  viewsMachine: (id: string, serialNumbers: string[]) => Promise<IMachine[]>
 }
 
 export default function machineRepositoryMongoDB() {
-  const viewsMachine = async (id: string): Promise<IMachine[]> => {
+  const viewsMachine = async (
+    id: string,
+    serialNumbers: string[],
+  ): Promise<IMachine[]> => {
     if (!Types.ObjectId.isValid(id)) {
       return Promise.reject(
         new CustomError(`${id} is not a valid machine id`, 400),
       )
     }
 
-    return MachineModel.find({ userId: id })
+    const findByUserId = await MachineModel.find({ userId: id })
       .sort({ createdAt: -1 })
       .then((machines: any) => {
         if (!machines) {
@@ -38,16 +41,34 @@ export default function machineRepositoryMongoDB() {
       .catch((error: any) => {
         return Promise.reject(error)
       })
+
+    const findBySerialNumbers = await MachineModel.find({
+      serialNumber: serialNumbers,
+    })
+      .sort({ createdAt: -1 })
+      .then((machines: any) => {
+        if (!machines) {
+          return Promise.reject(
+            new CustomError(`Machine with id ${id} not found`, 404),
+          )
+        }
+        return machines as IMachine[]
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
+
+    return [...findByUserId, ...findBySerialNumbers]
   }
 
-  const findById = (id: string): Promise<IMachine> => {
+  const findById = async (id: string): Promise<IMachine> => {
     if (!Types.ObjectId.isValid(id)) {
       return Promise.reject(
         new CustomError(`${id} is not a valid machine id`, 400),
       )
     }
 
-    return MachineModel.findById(id).then((machine: any) => {
+    return await MachineModel.findById(id).then((machine: any) => {
       if (!machine) {
         return Promise.reject(
           new CustomError(`Machine with id ${id} not found`, 404),
@@ -64,14 +85,18 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    const machine = MachineModel.findByIdAndDelete(id).then((machine: any) => {
-      if (!machine) {
-        return Promise.reject(
-          new CustomError(`Machine with id ${id} not found`, 404),
-        )
-      }
-      return machine
-    })
+    const machine = await MachineModel.findByIdAndDelete(id)
+      .then((machine: any) => {
+        if (!machine) {
+          return Promise.reject(
+            new CustomError(`Machine with id ${id} not found`, 404),
+          )
+        }
+        return machine
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
 
     return machine
   }
@@ -94,7 +119,7 @@ export default function machineRepositoryMongoDB() {
       }
     }
 
-    return MachineModel.create({
+    return await MachineModel.create({
       name: machine.getName(),
       serialNumber: machine.getSerialNumber(),
       location: machine.getLocation(),

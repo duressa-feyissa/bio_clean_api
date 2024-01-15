@@ -54,7 +54,8 @@ export default function machineController(
     res: Response,
     next: NextFunction,
   ) => {
-    viewsMachine(req.params.userId, dbRepository)
+    const serialNumbers = (req.query.serialNumbers as string[]) || []
+    viewsMachine(req.params.userId, serialNumbers, dbRepository)
       .then(user => res.json(user))
       .catch(error => next(error))
   }
