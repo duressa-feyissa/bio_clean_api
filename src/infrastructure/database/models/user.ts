@@ -41,12 +41,6 @@ const UserSchema: Schema<IUser> = new Schema({
     type: Date,
     default: Date.now,
   },
-  machines: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Machine',
-    },
-  ],
 })
 
 UserSchema.index({ role: 1 })

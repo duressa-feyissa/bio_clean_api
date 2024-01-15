@@ -3,9 +3,9 @@ export interface IMachine {
   name: string
   serialNumber: string
   location: string
+  userId?: string
   createdAt: Date
   updatedAt?: Date
-  inputs: string[]
 }
 
 export default function Machine({
@@ -13,6 +13,7 @@ export default function Machine({
   name,
   serialNumber,
   location,
+  userId,
   createdAt,
   updatedAt,
 }: IMachine) {
@@ -21,6 +22,7 @@ export default function Machine({
     getName: () => name,
     getSerialNumber: () => serialNumber,
     getLocation: () => location,
+    getUserId: () => userId,
     getCreatedAt: () => createdAt,
     getUpdatedAt: () => updatedAt,
   })

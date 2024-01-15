@@ -21,22 +21,26 @@ export type IInputRepositoryImpl = () => {
 }
 
 export default function inputRepositoryMongoDB() {
-  const findById = (id: string): Promise<IInput> => {
+  const findById = async (id: string): Promise<IInput> => {
     if (!Types.ObjectId.isValid(id)) {
       return Promise.reject(
         new CustomError(`${id} is not a valid input id`, 400),
       )
     }
 
-    return InputModel.findById(id).then((input: any) => {
-      if (!input) {
-        return Promise.reject(
-          new CustomError(`Input with id ${id} not found`, 404),
-        )
-      }
+    return await InputModel.findById(id)
+      .then((input: any) => {
+        if (!input) {
+          return Promise.reject(
+            new CustomError(`Input with id ${id} not found`, 404),
+          )
+        }
 
-      return input
-    })
+        return input
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
   }
 
   const deleteInput = async (id: string): Promise<IInput> => {
@@ -46,31 +50,17 @@ export default function inputRepositoryMongoDB() {
       )
     }
 
-    const deleteInput = InputModel.findByIdAndDelete(id).then((input: any) => {
-      if (!input) {
-        return Promise.reject(
-          new CustomError(`Input with id ${id} not found`, 404),
-        )
-      }
+    const deleteInput = await InputModel.findByIdAndDelete(id).then(
+      (input: any) => {
+        if (!input) {
+          return Promise.reject(
+            new CustomError(`Input with id ${id} not found`, 404),
+          )
+        }
 
-      return input
-    })
-
-    await MachineModel.aggregate([
-      { $match: { inputs: new Types.ObjectId(id) } },
-      {
-        $project: {
-          inputs: {
-            $filter: {
-              input: '$inputs',
-              as: 'input',
-              cond: { $ne: ['$$input', new Types.ObjectId(id)] },
-            },
-          },
-        },
+        return input
       },
-      { $out: 'machines' },
-    ])
+    )
 
     return deleteInput
   }
@@ -85,19 +75,7 @@ export default function inputRepositoryMongoDB() {
       )
     }
 
-    const updatedInput = await InputModel.findByIdAndUpdate(
-      id,
-      {
-        type: input.getType(),
-        water: input.getWater(),
-        methanol: input.getMethanol(),
-        waste: input.getWaste(),
-        updatedAt: new Date(),
-      },
-      {
-        new: true,
-      },
-    ).then((input: any) => {
+    const existInput = await InputModel.findById(id).then((input: any) => {
       if (!input) {
         return Promise.reject(
           new CustomError(`Input with id ${id} not found`, 404),
@@ -107,7 +85,19 @@ export default function inputRepositoryMongoDB() {
       return input
     })
 
-    return updatedInput
+    if (!existInput) {
+      return Promise.reject(
+        new CustomError(`Input with id ${id} not found`, 404),
+      )
+    }
+
+    existInput.type = input.getType()
+    existInput.water = input.getWater()
+    existInput.methanol = input.getMethanol()
+    existInput.waste = input.getWaste()
+    existInput.updatedAt = new Date()
+
+    return await existInput.save()
   }
 
   const createInput = async (
@@ -137,26 +127,9 @@ export default function inputRepositoryMongoDB() {
       water: input.getWater(),
       methanol: input.getMethanol(),
       waste: input.getWaste(),
+      machineId: machine,
       createdAt: new Date(),
     })
-
-    await MachineModel.aggregate([
-      { $match: { _id: new Types.ObjectId(machine) } },
-      {
-        $set: {
-          inputs: {
-            $concatArrays: ['$inputs', [newInput._id]],
-          },
-        },
-      },
-      {
-        $merge: {
-          into: 'machines',
-          whenMatched: 'merge',
-          whenNotMatched: 'insert',
-        },
-      },
-    ])
 
     return newInput
   }
@@ -168,27 +141,22 @@ export default function inputRepositoryMongoDB() {
       )
     }
 
-    const existMachine = await MachineModel.findById(id).then(
-      (machine: any) => {
-        if (!machine) {
+    const inputs = await InputModel.find({ machineId: id })
+      .sort({
+        updatedAt: -1,
+      })
+      .then((inputs: any) => {
+        if (!inputs) {
           return Promise.reject(
-            new CustomError(`Machine with id ${id} not found`, 404),
+            new CustomError(`Input with id ${id} not found`, 404),
           )
         }
 
-        return machine
-      },
-    )
-
-    if (!existMachine) {
-      return Promise.reject(
-        new CustomError(`Machine with id ${id} not found`, 404),
-      )
-    }
-
-    const inputs = await InputModel.find({
-      _id: { $in: existMachine.inputs },
-    }).sort({ updatedAt: -1 })
+        return inputs
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
 
     return inputs
   }
@@ -209,20 +177,55 @@ export default function inputRepositoryMongoDB() {
       )
     }
 
-    const inputs = await InputModel.find({
-      _id: { $in: machine.inputs },
+    const existingMachine = await MachineModel.findOne({
+      serialNumber,
+    })
+      .then((machine: any) => {
+        if (!machine) {
+          return Promise.reject(
+            new CustomError(
+              `Machine with serialNumber ${serialNumber} not found`,
+              404,
+            ),
+          )
+        }
+        return machine
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
+
+    if (!existingMachine) {
+      return Promise.reject(
+        new CustomError(
+          `Machine with serialNumber ${serialNumber} not found`,
+          404,
+        ),
+      )
+    }
+
+    const machineId = existingMachine._id
+
+    const machineInput = await InputModel.findOne({
+      machineId,
     }).sort({ updatedAt: -1 })
 
-    const updatedInput = await InputModel.findByIdAndUpdate(
-      inputs[0]._id,
+    if (!machineInput) {
+      return Promise.reject(
+        new CustomError(`Input with machineId ${machineId} not found`, 404),
+      )
+    }
+
+    const updatedMachineInput = await InputModel.findByIdAndUpdate(
+      machineInput._id,
       {
-        type: inputs[0].type,
-        waste: inputs[0].waste,
-        water: inputs[0].water,
-        methanol: inputs[0].methanol,
-        createdAt: inputs[0].createdAt,
-        waterProduction: Math.max(water, inputs[0].waterProduction || 0),
-        bioGasProduction: Math.max(biogas, inputs[0].bioGasProduction || 0),
+        type: machineInput.type,
+        waste: machineInput.waste,
+        water: machineInput.water,
+        methanol: machineInput.methanol,
+        createdAt: machineInput.createdAt,
+        waterProduction: Math.max(water, machineInput.waterProduction || 0),
+        bioGasProduction: Math.max(biogas, machineInput.bioGasProduction || 0),
         currentBioGasProduction: biogas,
         currentWaterProduction: water,
         updatedAt: new Date(),
@@ -233,15 +236,14 @@ export default function inputRepositoryMongoDB() {
     ).then((input: any) => {
       if (!input) {
         return Promise.reject(
-          new CustomError(`Input with id ${inputs[0]._id} not found`, 404),
+          new CustomError(`Input with id ${machineInput._id} not found`, 404),
         )
       }
-
 
       return input
     })
 
-    return updatedInput
+    return updatedMachineInput
   }
 
   return {

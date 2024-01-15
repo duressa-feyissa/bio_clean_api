@@ -52,6 +52,10 @@ const InputSchema: Schema<IInput> = new Schema({
     type: Date,
     default: Date.now,
   },
+  machineId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Machine',
+  },
 })
 
 InputSchema.index({ name: 1 })

@@ -2,7 +2,6 @@ import { Types } from 'mongoose'
 import CustomError from '../../config/error'
 import Machine, { IMachine } from '../../domain/entities/machine'
 import MachineModel from '../database/models/machine'
-import UserModel from '../database/models/user'
 
 export type IMachineRepositoryImpl = () => {
   findById: (id: string) => Promise<IMachine>
@@ -26,27 +25,19 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    return await UserModel.aggregate([
-      { $match: { _id: new Types.ObjectId(id) } },
-      {
-        $lookup: {
-          from: 'machines',
-          localField: 'machines',
-          foreignField: '_id',
-          as: 'machines',
-        },
-      },
-      { $unwind: '$machines' },
-      {
-        $project: {
-          _id: '$machines._id',
-          name: '$machines.name',
-          serialNumber: '$machines.serialNumber',
-          location: '$machines.location',
-          createdAt: '$machines.createdAt',
-        },
-      },
-    ])
+    return MachineModel.find({ userId: id })
+      .sort({ createdAt: -1 })
+      .then((machines: any) => {
+        if (!machines) {
+          return Promise.reject(
+            new CustomError(`Machine with id ${id} not found`, 404),
+          )
+        }
+        return machines as IMachine[]
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
   }
 
   const findById = (id: string): Promise<IMachine> => {
@@ -56,16 +47,14 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    return MachineModel.findById(id)
-      .select('-inputs')
-      .then((machine: any) => {
-        if (!machine) {
-          return Promise.reject(
-            new CustomError(`Machine with id ${id} not found`, 404),
-          )
-        }
-        return machine as IMachine
-      })
+    return MachineModel.findById(id).then((machine: any) => {
+      if (!machine) {
+        return Promise.reject(
+          new CustomError(`Machine with id ${id} not found`, 404),
+        )
+      }
+      return machine as IMachine
+    })
   }
 
   const deleteMachine = async (id: string): Promise<IMachine> => {
@@ -75,31 +64,18 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    const machine = MachineModel.findByIdAndDelete(id)
-      .select('-inputs')
-      .then((machine: any) => {
-        if (!machine) {
-          return Promise.reject(
-            new CustomError(`Machine with id ${id} not found`, 404),
-          )
-        }
-        return machine
-      })
-
-    await UserModel.updateOne(
-      { machines: new Types.ObjectId(id) },
-      { $pull: { machines: new Types.ObjectId(id) } },
-    ).then((user: any) => {
-      if (!user) {
+    const machine = MachineModel.findByIdAndDelete(id).then((machine: any) => {
+      if (!machine) {
         return Promise.reject(
-          new CustomError(`User with machine id ${id} not found`, 404),
+          new CustomError(`Machine with id ${id} not found`, 404),
         )
       }
-      return user
+      return machine
     })
 
     return machine
   }
+
   const createMachine = async (
     userId: string,
     machine: ReturnType<typeof Machine>,
@@ -118,32 +94,18 @@ export default function machineRepositoryMongoDB() {
       }
     }
 
-    const newMachine = await MachineModel.create({
+    return MachineModel.create({
       name: machine.getName(),
       serialNumber: machine.getSerialNumber(),
       location: machine.getLocation(),
-      createdAt: machine.getCreatedAt(),
-    }).then((machine: IMachine) => machine)
-
-    await UserModel.aggregate([
-      { $match: { _id: new Types.ObjectId(userId) } },
-      {
-        $set: {
-          machines: {
-            $concatArrays: ['$machines', [newMachine._id]],
-          },
-        },
-      },
-      {
-        $merge: {
-          into: 'users',
-          whenMatched: 'merge',
-          whenNotMatched: 'insert',
-        },
-      },
-    ])
-
-    return newMachine
+      userId,
+    })
+      .then((machine: IMachine) => {
+        return machine
+      })
+      .catch((error: any) => {
+        return Promise.reject(error)
+      })
   }
 
   const updateMachine = async (
@@ -156,24 +118,29 @@ export default function machineRepositoryMongoDB() {
       )
     }
 
-    return MachineModel.findByIdAndUpdate(
-      id,
-      {
-        name: machine.getName(),
-        serialNumber: machine.getSerialNumber(),
-        location: machine.getLocation(),
-        updatedAt: machine.getUpdatedAt(),
-      },
-      { new: true },
-    )
-      .select('-inputs')
-      .then((updatedMachine: IMachine | null) => {
-        if (updatedMachine) {
-          return updatedMachine
-        } else {
-          throw new CustomError(`No machine found with id ${id}`, 404)
-        }
-      })
+    const existingMachine = await MachineModel.findOne({
+      serialNumber: machine.getSerialNumber(),
+    })
+
+    if (
+      existingMachine == null ||
+      (existingMachine && existingMachine._id != id)
+    ) {
+      return Promise.reject(
+        new CustomError(
+          `Machine with serialNumber ${machine.getSerialNumber()} already exists`,
+          409,
+        ),
+      )
+    }
+
+    existingMachine.name = machine.getName()
+    existingMachine.serialNumber = machine.getSerialNumber()
+    existingMachine.location = machine.getLocation()
+    existingMachine.userId = machine.getUserId()
+    existingMachine.updatedAt = new Date()
+    await existingMachine.save()
+    return existingMachine
   }
 
   return {

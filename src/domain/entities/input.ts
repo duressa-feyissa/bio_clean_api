@@ -10,6 +10,7 @@ export interface IInput {
   bioGasProduction?: number
   currentBioGasProduction?: number
   currentWaterProduction?: number
+  machineId?: string
 }
 
 export default function Input({
@@ -22,6 +23,7 @@ export default function Input({
   bioGasProduction,
   currentBioGasProduction,
   currentWaterProduction,
+  machineId,
   createdAt,
   updatedAt,
 }: IInput) {
@@ -35,6 +37,7 @@ export default function Input({
     getBioGasProduction: () => bioGasProduction,
     getCurrentBioGasProduction: () => currentBioGasProduction,
     getCurrentWaterProduction: () => currentWaterProduction,
+    getMachineId: () => machineId,
     getCreatedAt: () => createdAt,
     getUpdatedAt: () => updatedAt,
   })

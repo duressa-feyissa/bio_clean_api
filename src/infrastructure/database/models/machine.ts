@@ -23,12 +23,10 @@ const MachineSchema: Schema<IMachine> = new Schema({
     type: Date,
     default: Date.now,
   },
-  inputs: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Input',
-    },
-  ],
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
 })
 
 MachineSchema.index({ name: 1 })
