@@ -802,6 +802,34 @@
         }
       }
     },
+    "/api/v1/machines/{machineId}/analysis": {
+      "get": {
+        "summary": "Get analysis",
+        "tags": ["Machines"],
+        "parameters": [
+          {
+            "name": "machineId",
+            "in": "path",
+            "description": "Machine id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/v1/inputs/{serialNumber}/progress": {
       "post": {
         "summary": "Update progress",

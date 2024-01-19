@@ -10,6 +10,7 @@ export default function machineRouter(router: Router) {
     machineRepositoryMongoDB,
   )
 
+  router.get('/:id/analysis', authMiddleware, controller.analysisMachine)
   router.post('/:userId', authMiddleware, controller.createMachineFetch)
   router.get('/:id', authMiddleware, controller.fetchMachineById)
   router.delete('/:id', authMiddleware, controller.deleteMachine)

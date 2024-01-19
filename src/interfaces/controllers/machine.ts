@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
+import analysis from '../../application/use_cases/machine/analysis'
 import createMachine from '../../application/use_cases/machine/create'
 import removeMachine from '../../application/use_cases/machine/delete'
 import findById from '../../application/use_cases/machine/findById'
@@ -60,11 +61,18 @@ export default function machineController(
       .catch(error => next(error))
   }
 
+  const analysisMachine = (req: Request, res: Response, next: NextFunction) => {
+    analysis(req.params.id, dbRepository)
+      .then(user => res.json(user))
+      .catch(error => next(error))
+  }
+
   return {
     fetchMachineById,
     deleteMachine,
     updateMachinefetch,
     createMachineFetch,
     fetchViewsMachine,
+    analysisMachine,
   }
 }
