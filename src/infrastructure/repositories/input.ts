@@ -33,8 +33,8 @@ export default function inputRepositoryMongoDB() {
       'https://api.thingspeak.com/channels/2410169/feeds.json?api_key=ALMYO1V08HKUUWVM&results=1',
     )
     const data = result.data.feeds[0]
-    const water = data.field2
-    const biogas = data.field1
+    const water = data.field2 / 100
+    const biogas = data.field1 / 100
 
     const input = await InputModel.findById(id)
       .then((input: any) => {
