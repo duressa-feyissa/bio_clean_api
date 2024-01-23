@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { Types } from 'mongoose'
 import CustomError from '../../config/error'
 import Input, { IInput } from '../../domain/entities/input'
@@ -28,7 +29,14 @@ export default function inputRepositoryMongoDB() {
       )
     }
 
-    return await InputModel.findById(id)
+    const result = await axios.get(
+      'https://api.thingspeak.com/channels/2410169/feeds.json?api_key=ALMYO1V08HKUUWVM&results=1',
+    )
+    const data = result.data.feeds[0]
+    const water = data.field2
+    const biogas = data.field1
+
+    const input = await InputModel.findById(id)
       .then((input: any) => {
         if (!input) {
           return Promise.reject(
@@ -41,6 +49,14 @@ export default function inputRepositoryMongoDB() {
       .catch((error: any) => {
         return Promise.reject(error)
       })
+
+    input.waterProduction = Math.max(water, input.waterProduction || 0)
+    input.bioGasProduction = Math.max(biogas, input.bioGasProduction || 0)
+    input.currentBioGasProduction = biogas
+    input.currentWaterProduction = water
+    input.updatedAt = new Date()
+
+    return input.save()
   }
 
   const deleteInput = async (id: string): Promise<IInput> => {

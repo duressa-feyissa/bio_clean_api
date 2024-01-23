@@ -43,6 +43,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
+    "axios": "^1.6.5",
     "bcryptjs": "^2.4.3",
     "joi-objectid": "^4.0.2",
     "jsonwebtoken": "^9.0.2",
